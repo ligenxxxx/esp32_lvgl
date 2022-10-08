@@ -9,11 +9,13 @@ void parseCommand(char *commandStr, uint8_t commandLen, shell_t *shell)
     {
         esp_restart();
     }
+    /*
     else if(!strncmp(commandStr, "xmodem_rx", sizeof("xmodem_rx")))
     {
         shell->outputs((uint8_t *)"\r\nwait xmodem....\r\n", 19);
         shell->xmodem_rx(shell->output, shell->input, shell->LedBlink);
     }
+    */
 }
 
 void ShellProc(shell_t *shell)
