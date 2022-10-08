@@ -13,6 +13,7 @@
 #include "shellTask.h"
 #include "ledTask.h"
 #include "uart_driver.h"
+#include "i2c_driver.h"
 
 void uart_init(void)
 {
@@ -22,6 +23,9 @@ void uart_init(void)
 void device_init(void)
 {
     uart_init();
+    if(i2c_init() != ESP_OK)
+        printf("\r\ni2c init error");
+
 }
 
 void app_main(void)

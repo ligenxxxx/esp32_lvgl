@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.5)
 set(EXTRA_COMPONENT_DIRS "$(EXTRA_COMPONENT_DIRS) components/uart")
 set(EXTRA_COMPONENT_DIRS "$(EXTRA_COMPONENT_DIRS) components/shell")
 set(EXTRA_COMPONENT_DIRS "$(EXTRA_COMPONENT_DIRS) components/led")
+set(EXTRA_COMPONENT_DIRS "$(EXTRA_COMPONENT_DIRS) components/i2c")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(esp32_lvgl)
