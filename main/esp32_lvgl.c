@@ -14,6 +14,7 @@
 #include "ledTask.h"
 #include "uart_driver.h"
 #include "i2c_driver.h"
+#include "../components/joystick/include/joystick_driver.h"
 
 void uart_init(void)
 {
@@ -26,6 +27,7 @@ void device_init(void)
     if(i2c_init() != ESP_OK)
         printf("\r\ni2c init error");
 
+    printf("\r\ndevice init done");
 }
 
 void app_main(void)
@@ -33,10 +35,9 @@ void app_main(void)
 
     device_init();
     
-    printf("Hello world!\n");
-    
-    xTaskCreate(shellTask, "shellTask", 4096, NULL, 1, NULL);
-    xTaskCreate(ledTask, "ledTask", 4096, NULL, 1, NULL);
+    xTaskCreate(shellTask, "shell_Task", 4096, NULL, 1, NULL);
+    xTaskCreate(ledTask, "led_Task", 4096, NULL, 1, NULL);
+    xTaskCreate(joystick_Task, "joystick_Task", 4096, NULL, 1, NULL);
     while(1)
     {
         vTaskDelay(1);
