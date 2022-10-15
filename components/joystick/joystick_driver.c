@@ -43,8 +43,8 @@ void joystick_Task(void)
     while(1)
     {
         if(joystick_updata() == ESP_OK)
-            printf("\r\n%d  x:%d y:%d  up:%d  down:%d  left:%d  right:%d  stick:%d",
-                    joystick.isConnected, joystick.stick_x, joystick.stick_y,
+            printf("\r\n%d x:%d y:%d  up:%d  down:%d  left:%d  right:%d  stick:%d",
+                    xTaskGetTickCount()/100, joystick.stick_x, joystick.stick_y,
                     joystick.button_up, joystick.button_down, joystick.button_left, joystick.button_right,
                     joystick.button_stick);
         else
