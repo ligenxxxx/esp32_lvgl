@@ -1,1 +1,1 @@
-idf_component_register(SRCS "src/shell.c")
+idf_component_register(SRC_DIRS "src")

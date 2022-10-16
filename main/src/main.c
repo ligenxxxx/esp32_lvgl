@@ -15,6 +15,9 @@
 #include "../../components/i2c/include/i2c_driver.h"
 #include "../../components/joystick/include/joystick_driver.h"
 #include "../../components/shell/include/shell.h"
+#include "../../components/lvgl/lvgl.h"
+#include "../../components/lvgl/porting/lv_port_disp.h"
+
 
 void uart_init(void)
 {
@@ -32,12 +35,15 @@ void device_init(void)
 
 void app_main(void)
 {
-
+    lv_init();
+    lv_port_disp_init();
+#if(0)
     device_init();
     
     xTaskCreate(shellTask, "shellTask", 4096, NULL, 1, NULL);
     xTaskCreate(ledTask, "ledTask", 4096, NULL, 1, NULL);
     xTaskCreate(joystickTask, "joystickTask", 4096, NULL, 1, NULL);
+#endif
     while(1)
     {
         vTaskDelay(1);

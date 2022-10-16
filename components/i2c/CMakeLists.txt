@@ -1,1 +1,1 @@
-idf_component_register(SRCS "src/i2c_driver.c")
+idf_component_register(SRC_DIRS "src")
