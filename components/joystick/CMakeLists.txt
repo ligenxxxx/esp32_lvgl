@@ -1,2 +1,1 @@
-idf_component_register(SRCS "joystick_driver.c"
-                    INCLUDE_DIRS "include")
+idf_component_register(SRCS "src/joystick_driver.c")

@@ -1,4 +1,7 @@
-#include "led_driver.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "../../../main/include/global.h"
+#include "../../led/include/led_driver.h"
 uint8_t led0_status;
 uint8_t led0_mode;
 
@@ -88,4 +91,18 @@ uint8_t led_update(uint32_t sysMs)
 
     return ret;
 
+}
+
+void ledTask()
+{
+    led_init();
+    #ifdef _DEBUG_MODE
+    printf("\r\nledTask start");
+    #endif
+
+    while(1)
+    {
+        led_update(xTaskGetTickCount()*10);
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+    }
 }

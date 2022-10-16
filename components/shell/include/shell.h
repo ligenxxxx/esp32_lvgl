@@ -20,5 +20,5 @@ typedef struct
     LedBlink_t LedBlink;
 } shell_t;
 
-void ShellProc(shell_t *shell);
+void shellTask();
 #endif

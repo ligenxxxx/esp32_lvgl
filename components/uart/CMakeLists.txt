@@ -1,2 +1,1 @@
-idf_component_register(SRCS "uart_driver.c"
-                    INCLUDE_DIRS "include")
+idf_component_register(SRCS "src/uart_driver.c")

@@ -3,4 +3,6 @@
 
 #define FW_VERSION (uint8_t *)"00.01.00"
 
+#define _DEBUG_MODE
+
 #endif

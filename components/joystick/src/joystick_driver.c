@@ -1,10 +1,11 @@
 #include "driver/i2c.h"
+#include "../../../main/include/global.h"
 #include "../../i2c/include/i2c_driver.h"
-#include "../include/joystick_driver.h"
+#include "../../joystick/include/joystick_driver.h"
 
 joystick_t joystick;
 
-esp_err_t joystick_updata(void)
+static esp_err_t joystick_updata(void)
 {
     esp_err_t err;
     uint8_t wdata[2];
@@ -38,8 +39,12 @@ esp_err_t joystick_updata(void)
     return err;
 }
 
-void joystick_Task(void)
+void joystickTask()
 {
+    #ifdef _DEBUG_MODE
+    printf("\r\njoystickTask start");
+    #endif
+    
     while(1)
     {
         if(joystick_updata() == ESP_OK)

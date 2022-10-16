@@ -25,6 +25,6 @@ typedef enum
 void led_init(void);
 uint8_t led_update(uint32_t sysMs);
 void led_blink(void);
-
+void ledTask();
 extern uint8_t led0_mode;
 #endif

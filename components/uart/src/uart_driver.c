@@ -1,4 +1,4 @@
-#include "uart_driver.h"
+#include "../../uart/include/uart_driver.h"
 
 uart_port_t const uart0_num = UART_NUM_0;
 uart_port_t const uart2_num = UART_NUM_2;

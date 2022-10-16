@@ -53,6 +53,6 @@ typedef struct
     button_e button_stick;
 } joystick_t;
 
-void joystick_Task(void);
+void joystickTask();
 
 #endif
