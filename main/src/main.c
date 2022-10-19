@@ -37,7 +37,7 @@ void app_main(void)
 {
     lv_init();
     lv_port_disp_init();
-#if(0)
+#if(1)
     device_init();
     
     xTaskCreate(shellTask, "shellTask", 4096, NULL, 1, NULL);

@@ -14,7 +14,7 @@ static esp_err_t joystick_updata(void)
     wdata[0] = JOYSTICK_LEFT_X_REG;
     wdata[1] = JOYSTICK_BUTTON_REG;
     err = i2c_master_write_read_device(i2c0_master_port, JOYSTICK_I2C_ADDR, &wdata[0], 1, rdata, 2, I2C0_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
-    if(err != ESP_OK)
+    if (err != ESP_OK)
     {
         joystick.isConnected = 0;
         return err;
@@ -23,7 +23,7 @@ static esp_err_t joystick_updata(void)
     joystick.stick_y = rdata[1];
 
     err = i2c_master_write_read_device(i2c0_master_port, JOYSTICK_I2C_ADDR, &wdata[1], 1, rdata, 5, I2C0_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
-    if(err != ESP_OK)
+    if (err != ESP_OK)
     {
         joystick.isConnected = 0;
         return err;
@@ -41,20 +41,20 @@ static esp_err_t joystick_updata(void)
 
 void joystickTask()
 {
-    #ifdef _DEBUG_MODE
+#ifdef _DEBUG_MODE
     printf("\r\njoystickTask start");
-    #endif
-    
-    while(1)
+#endif
+
+    while (1)
     {
-        if(joystick_updata() == ESP_OK)
+        if (joystick_updata() == ESP_OK)
             printf("\r\n%d x:%d y:%d  up:%d  down:%d  left:%d  right:%d  stick:%d",
-                    xTaskGetTickCount()/100, joystick.stick_x, joystick.stick_y,
-                    joystick.button_up, joystick.button_down, joystick.button_left, joystick.button_right,
-                    joystick.button_stick);
+                   xTaskGetTickCount() / 100, joystick.stick_x, joystick.stick_y,
+                   joystick.button_up, joystick.button_down, joystick.button_left, joystick.button_right,
+                   joystick.button_stick);
         else
             printf("\r\njoystick lost");
-            
-        vTaskDelay(100 / portTICK_RATE_MS);
+
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
