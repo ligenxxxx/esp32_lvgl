@@ -1,14 +1,9 @@
-
 /**
- * @file lv_port_indev_templ.h
- *
+ * @file STMPE610.h
  */
 
-/*Copy this file as "lv_port_indev.h" and set this value to "1" to enable content*/
-#if 0
-
-#ifndef LV_PORT_INDEV_TEMPL_H
-#define LV_PORT_INDEV_TEMPL_H
+#ifndef FT81X_TOUCH__H
+#define FT81X_TOUCH__H
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +12,14 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
+
+#include <stdint.h>
+#include <stdbool.h>
+#ifdef LV_LVGL_H_INCLUDE_SIMPLE
+#include "lvgl.h"
+#else
 #include "lvgl/lvgl.h"
+#endif
 
 /*********************
  *      DEFINES
@@ -30,16 +32,15 @@ extern "C" {
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void lv_port_indev_init(void);
+;
+bool FT81x_read(lv_indev_drv_t * drv, lv_indev_data_t * data);
 
 /**********************
  *      MACROS
  **********************/
 
 #ifdef __cplusplus
-} /*extern "C"*/
+} /* extern "C" */
 #endif
 
-#endif /*LV_PORT_INDEV_TEMPL_H*/
-
-#endif /*Disable/Enable content*/
+#endif /* FT81X_TOUCH__H */
