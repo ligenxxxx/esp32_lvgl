@@ -25,7 +25,11 @@ extern "C" {
 /*********************
  *      DEFINES
  *********************/
+#define ST7789_WIDTH        320
+#define ST7789_HEIGHT       172
 
+#define MY_DISP_HOR_RES     ST7789_WIDTH
+#define MY_DISP_VER_RES     ST7789_HEIGHT
 /**********************
  *      TYPEDEFS
  **********************/
