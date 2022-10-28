@@ -13,6 +13,8 @@
 #include "../../components/led/include/led_driver.h"
 #include "../../components/uart/include/uart_driver.h"
 #include "../../components/i2c/include/i2c_driver.h"
+#include "../../components/spi/include/spi_driver.h"
+#include "../../components/lcd/include/lcd_driver.h"
 #include "../../components/joystick/include/joystick_driver.h"
 #include "../../components/shell/include/shell.h"
 #include "../../components/lvgl/lvgl.h"
@@ -27,23 +29,23 @@ void uart_init(void)
 void device_init(void)
 {
     uart_init();
-    if(i2c_init() != ESP_OK)
-        printf("\r\ni2c init error");
+    i2c_init();
+    spi_driver_init();
+    lcd_driver_init();
 
     printf("\r\ndevice init done");
 }
 
 void app_main(void)
 {
+    device_init();
     lv_init();
     lv_port_disp_init();
-#if(1)
-    device_init();
     
     xTaskCreate(shellTask, "shellTask", 4096, NULL, 1, NULL);
     xTaskCreate(ledTask, "ledTask", 4096, NULL, 1, NULL);
-    xTaskCreate(joystickTask, "joystickTask", 4096, NULL, 1, NULL);
-#endif
+    //xTaskCreate(joystickTask, "joystickTask", 4096, NULL, 1, NULL);
+
     while(1)
     {
         vTaskDelay(1);
