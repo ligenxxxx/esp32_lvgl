@@ -49,7 +49,7 @@ static void lcd_data(const uint8_t *data, uint16_t len)
     esp_err_t ret;
     memset(&t, 0, sizeof(t));
 
-    t.length = (len << 3);
+    t.length = len << 3;
     t.tx_buffer = data;
     t.user = (void*)1;
 
@@ -57,11 +57,27 @@ static void lcd_data(const uint8_t *data, uint16_t len)
     assert(ret == ESP_OK);
 }
 
+static void lcd_data8(uint8_t data)
+{
+
+    spi_transaction_t t;
+    esp_err_t ret;
+    memset(&t, 0, sizeof(t));
+
+    t.length = 8;
+    t.tx_buffer = &data;
+    t.user = (void*)1;
+
+    ret = spi_device_transmit(LCD_SPI_HALDLE, &t);
+    assert(ret == ESP_OK);
+}
+
+#if(0)
 static uint32_t lcd_get_id(void)
 {
     esp_err_t ret;
+    uint8_t data;
 
-    lcd_cmd(0x04);
 
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));
@@ -74,7 +90,98 @@ static uint32_t lcd_get_id(void)
 
     return *(uint32_t*)t.rx_data;
 }
+#endif
 
+static void lcd_addr_set(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1)
+{
+    lcd_cmd(0x2a);
+    lcd_data8(x0>>8);
+    lcd_data8(x0&0xff);
+    lcd_data8(x1>>8);
+    lcd_data8(x1&0xff);
+
+    lcd_cmd(0x2b);
+    lcd_data8((y0+34)>>8);
+    lcd_data8((y0+34)&0xff);
+    
+    lcd_cmd(0x2c);
+}
+
+static void lcd_fill(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1, uint16_t color)
+{
+    uint16_t x,y;
+    lcd_addr_set(x0,x1,y0,y1);
+    for(y=y0; y<y1; y++)
+    {
+        for(x=x0; x<x1; x++)
+        {
+            lcd_data8(color>>8);
+            lcd_data8(color&0xff);
+        }
+    }
+}
+
+static void lcd_reg_init(void)
+{
+    lcd_cmd(0x11);
+    
+    lcd_cmd(0x36);
+    lcd_data8(0x70);
+
+    lcd_cmd(0x3a);
+    lcd_data8(0x05);
+
+    lcd_cmd(0xb2);
+    lcd_data8(0x0c);
+    lcd_data8(0x0c);
+    lcd_data8(0x00);
+    lcd_data8(0x33);
+    lcd_data8(0x33);
+
+    lcd_cmd(0xb7);
+    lcd_data8(0x35);
+
+    lcd_cmd(0xbb);
+    lcd_data8(0x35);
+
+    lcd_cmd(0xc0);
+    lcd_data8(0x2c);
+
+    lcd_cmd(0xc2);
+    lcd_data8(0x01);
+
+    lcd_cmd(0xc3);
+    lcd_data8(0x13);
+
+    lcd_cmd(0xc4);
+    lcd_data8(0x20);
+
+    lcd_cmd(0xc6);
+    lcd_data8(0x0f);
+
+    lcd_cmd(0xd0);
+    lcd_data8(0xa4);
+    lcd_data8(0xa1);
+
+    lcd_cmd(0xd6);
+    lcd_data8(0xa1);
+
+    uint8_t data0[14] = {0xf0, 0x00, 0x04, 0x04, 0x04, 0x05,
+                    0x29, 0x33, 0x3e, 0x38, 0x12, 0x12, 0x28, 0x30};
+    lcd_cmd(0xe0);
+    lcd_data(data0, sizeof(data0));
+
+    uint8_t data1[14] = {0xf0, 0x07, 0x0a, 0x0d, 0x0b, 0x07,
+                    0x28, 0x33, 0x3e, 0x36, 0x14, 0x14, 0x29, 0x32};
+    lcd_cmd(0xe1);
+    lcd_data(data0, sizeof(data1));
+
+    lcd_cmd(0x21);
+
+    lcd_cmd(0x11);
+    vTaskDelay(100 / portTICK_RATE_MS);
+    lcd_cmd(0x29);
+}
 
 void lcd_driver_init(void)
 {
@@ -92,7 +199,18 @@ void lcd_driver_init(void)
     gpio_set_level(PIN_NUM_RST, 1);
     vTaskDelay(100 / portTICK_RATE_MS);
 
+    //backlight
+    gpio_set_level(PIN_NUM_BLK, 1);
+    vTaskDelay(100 / portTICK_RATE_MS);
+
     //detect LCD type
+    #if(0)
     uint32_t lcd_id = lcd_get_id();
     printf("\r\nLCD ID:0X%08X", lcd_id);
+    #endif
+
+    lcd_reg_init();
+
+    // fill white
+    lcd_fill(0,100,0,100,0xffff);
 }

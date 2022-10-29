@@ -8,7 +8,7 @@ esp_err_t spi_driver_init(void)
 {
     // init spi
     spi_bus_config_t spi2_buf_cfg = {
-    .miso_io_num = PIN_NUM_SPI2_MISO,
+    .miso_io_num = -1,
     .mosi_io_num = PIN_NUM_SPI2_MOSI,
     .sclk_io_num = PIN_NUM_SPI2_CLK,
     .quadwp_io_num = -1,
