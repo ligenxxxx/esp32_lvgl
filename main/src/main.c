@@ -30,7 +30,7 @@ void device_init(void)
 {
     uart_init();
     i2c_init();
-    spi_driver_init();
+    //spi_driver_init();
     lcd_driver_init();
 
     printf("\r\ndevice init done");

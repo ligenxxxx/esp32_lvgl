@@ -6,6 +6,20 @@
 #include <stdint.h>
 #include <string.h>
 
+IRAM_ATTR void spi_ready(spi_transaction_t *trans)
+{
+    #if(0)
+    uint32_t spi_cnt = (uint32_t)trans->user;
+
+    if(spi_cnt == 4)
+    {
+        spi_disp_flush_ready();
+    }
+    #else
+    ;
+    #endif
+}
+
 static void lcd_spi_pre_transfer_callback(spi_transaction_t *t)
 {
     int dc = (int)t->user;
@@ -14,6 +28,7 @@ static void lcd_spi_pre_transfer_callback(spi_transaction_t *t)
 
 static void lcd_spi_driver_init()
 {
+    #if(0)
     spi_device_interface_config_t spi2dev_cfg = {
         .clock_speed_hz = SPI2_CLOCK_SPEED_HZ,
         .mode = SPI2_MODE,
@@ -24,6 +39,17 @@ static void lcd_spi_driver_init()
         .post_cb = NULL,
         .flags = SPI_DEVICE_NO_DUMMY | SPI_DEVICE_HALFDUPLEX,
     };
+    #else
+    spi_device_interface_config_t spi2dev_cfg = {
+        .clock_speed_hz = SPI2_CLOCK_SPEED_HZ,
+        .mode = SPI2_MODE,
+        .spics_io_num = PIN_NUM_SPI2_CS,
+        .input_delay_ns = SPI2_INPUT_DELAY_NS,
+        .queue_size = SPI_TRANSACTION_POOL_SIZE,
+        .cs_ena_posttrans = 1,
+        .post_cb = spi_ready,
+    };
+    #endif
 
     esp_err_t ret = spi_bus_add_device(HOST2, &spi2dev_cfg, &LCD_SPI_HALDLE);
     if(ret != ESP_OK)
@@ -32,28 +58,16 @@ static void lcd_spi_driver_init()
 
 static void lcd_cmd(const uint8_t cmd)
 {
-    spi_transaction_t t;
     esp_err_t ret;
+    spi_transaction_t t;
     memset(&t, 0, sizeof(t));
 
     t.length = 8;
     t.tx_buffer = &cmd;
     t.user = (void*)0;
 
-    ret = spi_device_transmit(LCD_SPI_HALDLE, &t);
-    assert(ret == ESP_OK);
-}
-static void lcd_data(const uint8_t *data, uint16_t len)
-{
-    spi_transaction_t t;
-    esp_err_t ret;
-    memset(&t, 0, sizeof(t));
-
-    t.length = len << 3;
-    t.tx_buffer = data;
-    t.user = (void*)1;
-
-    ret = spi_device_transmit(LCD_SPI_HALDLE, &t);
+    gpio_set_level(PIN_NUM_DC, 0);
+    ret = spi_device_polling_transmit(LCD_SPI_HALDLE, &t);
     assert(ret == ESP_OK);
 }
 
@@ -66,31 +80,27 @@ static void lcd_data8(uint8_t data)
 
     t.length = 8;
     t.tx_buffer = &data;
-    t.user = (void*)1;
+    t.user = (void*)0;
 
-    ret = spi_device_transmit(LCD_SPI_HALDLE, &t);
+    gpio_set_level(PIN_NUM_DC, 1);
+    ret = spi_device_polling_transmit(LCD_SPI_HALDLE, &t);
     assert(ret == ESP_OK);
 }
 
-#if(0)
-static uint32_t lcd_get_id(void)
+static void lcd_data(uint16_t *tbuf, uint32_t len)
 {
-    esp_err_t ret;
-    uint8_t data;
-
-
     spi_transaction_t t;
+    esp_err_t ret;
     memset(&t, 0, sizeof(t));
-    t.length = 8*3;
-    t.flags = SPI_TRANS_USE_RXDATA;
-    t.user = (void*)1;
 
-    ret = spi_device_transmit(LCD_SPI_HALDLE, &t);
+    t.length = len << 4;
+    t.tx_buffer = (uint16_t *)tbuf;
+    t.user = (void*)0;
+
+    gpio_set_level(PIN_NUM_DC, 1);
+    ret = spi_device_polling_transmit(LCD_SPI_HALDLE, &t);
     assert(ret == ESP_OK);
-
-    return *(uint32_t*)t.rx_data;
 }
-#endif
 
 static void lcd_addr_set(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1)
 {
@@ -110,20 +120,25 @@ static void lcd_addr_set(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1)
 static void lcd_fill(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1, uint16_t color)
 {
     uint16_t x,y;
+    uint16_t line_buf[320];
+
+    #if(1)
+    uint8_t color_h = color >> 8;
+    color = (color << 8) | color_h;
+    #endif
+
+    for(x=0;x<320;x++)
+        line_buf[x] = color;
+
     lcd_addr_set(x0,x1,y0,y1);
     for(y=y0; y<y1; y++)
-    {
-        for(x=x0; x<x1; x++)
-        {
-            lcd_data8(color>>8);
-            lcd_data8(color&0xff);
-        }
-    }
+        lcd_data(line_buf, x1-x0);
 }
 
 static void lcd_reg_init(void)
 {
     lcd_cmd(0x11);
+    vTaskDelay(120/portTICK_RATE_MS);
     
     lcd_cmd(0x36);
     lcd_data8(0x70);
@@ -166,15 +181,17 @@ static void lcd_reg_init(void)
     lcd_cmd(0xd6);
     lcd_data8(0xa1);
 
-    uint8_t data0[14] = {0xf0, 0x00, 0x04, 0x04, 0x04, 0x05,
+    uint8_t i;
+    const uint8_t data0[14] = {0xf0, 0x00, 0x04, 0x04, 0x04, 0x05,
                     0x29, 0x33, 0x3e, 0x38, 0x12, 0x12, 0x28, 0x30};
     lcd_cmd(0xe0);
-    lcd_data(data0, sizeof(data0));
+    for(i=0;i<14;i++)
+    lcd_data8(data0[i]);
 
-    uint8_t data1[14] = {0xf0, 0x07, 0x0a, 0x0d, 0x0b, 0x07,
+    const uint8_t data1[14] = {0xf0, 0x07, 0x0a, 0x0d, 0x0b, 0x07,
                     0x28, 0x33, 0x3e, 0x36, 0x14, 0x14, 0x29, 0x32};
     lcd_cmd(0xe1);
-    lcd_data(data0, sizeof(data1));
+    lcd_data8(data1[i]);
 
     lcd_cmd(0x21);
 
@@ -185,20 +202,23 @@ static void lcd_reg_init(void)
 
 void lcd_driver_init(void)
 {
-    //init spi
-    lcd_spi_driver_init();
-
     // init non-spi gpio
+    gpio_pad_select_gpio(PIN_NUM_DC);
+    gpio_pad_select_gpio(PIN_NUM_RST);
+    gpio_pad_select_gpio(PIN_NUM_BLK);
     gpio_set_direction(PIN_NUM_DC, GPIO_MODE_OUTPUT);
     gpio_set_direction(PIN_NUM_RST, GPIO_MODE_OUTPUT);
     gpio_set_direction(PIN_NUM_BLK, GPIO_MODE_OUTPUT);
+
+    //init spi
+    spi_driver_init();
+    lcd_spi_driver_init();
 
     //reset
     gpio_set_level(PIN_NUM_RST, 0);
     vTaskDelay(100 / portTICK_RATE_MS);
     gpio_set_level(PIN_NUM_RST, 1);
     vTaskDelay(100 / portTICK_RATE_MS);
-
     //backlight
     gpio_set_level(PIN_NUM_BLK, 1);
     vTaskDelay(100 / portTICK_RATE_MS);
@@ -211,6 +231,10 @@ void lcd_driver_init(void)
 
     lcd_reg_init();
 
-    // fill white
-    lcd_fill(0,100,0,100,0xffff);
+    // fill color
+    lcd_fill(0,320,0,176,0x0000);
+    lcd_fill(0,320,0,4,0xffff);
+    lcd_fill(0,320,176-4,176,0xffff);
+    lcd_fill(0,4,0,176,0xffff);
+    lcd_fill(320-4,320,0,176,0xffff);
 }
