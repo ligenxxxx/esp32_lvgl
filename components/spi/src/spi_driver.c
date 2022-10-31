@@ -13,7 +13,7 @@ esp_err_t spi_driver_init(void)
     .sclk_io_num = PIN_NUM_SPI2_CLK,
     .quadwp_io_num = -1,
     .quadhd_io_num = -1,
-    .max_transfer_sz = 4094,
+    .max_transfer_sz = 4092,
     };
 
 
