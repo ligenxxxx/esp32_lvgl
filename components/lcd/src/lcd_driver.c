@@ -118,14 +118,20 @@ static void lcd_set_addr(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1)
 
     lcd_cmd(0x2c);
 }
+/*
+    x0/x1: range: 0 ~ LCD_HMAX-1
+    y0/y1: range: 0 ~ LCD_VMAX-1
 
+    area = [x0,x1][y0,y1]
+
+*/
 static void lcd_fill_color(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1, uint16_t color)
 {
     uint16_t i;
     const uint16_t packetSize = 2000/8; // why failed to use 4092/2 ?????
     uint16_t tbuf[packetSize];
 
-    uint32_t tsize = (x1-x0)*(y1-y0);
+    uint32_t tsize = (x1-x0+1)*(y1-y0+1);
     uint16_t tcnt = tsize / packetSize;
     uint16_t tsize_residual = tsize % packetSize;
 
@@ -143,12 +149,9 @@ static void lcd_fill_color(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1, u
     lcd_set_addr(x0,x1,y0,y1);
 
     //send integral data
-    if(tcnt == 0 && tsize_residual == 0)
-        return;
-
     for(i=0;i<tcnt; i++)
         lcd_data(tbuf, packetSize);
-    
+
     // send individual
     lcd_data(tbuf, tsize_residual);
 }
@@ -245,13 +248,13 @@ void lcd_driver_init(void)
     // fill color
     
     //draw all
-    lcd_fill_color(0,LCD_HMAX,0,LCD_VMAX,COLOR_WHITE);
+    lcd_fill_color(0,LCD_HMAX-1,0,LCD_VMAX-1,COLOR_WHITE);
     //draw top
-    lcd_fill_color(0,LCD_HMAX,0,8,COLOR_BLUE);
+    lcd_fill_color(0,LCD_HMAX-1,0,7,COLOR_BLUE);
     //draw bottom
-    lcd_fill_color(0,LCD_HMAX,LCD_VMAX-8,LCD_VMAX,COLOR_GREEN);
+    lcd_fill_color(0,LCD_HMAX-1,LCD_VMAX-8,LCD_VMAX-1,COLOR_GREEN);
     //draw right
-    lcd_fill_color(LCD_HMAX-8,LCD_HMAX,0,LCD_VMAX,COLOR_YELLOW);
+    lcd_fill_color(LCD_HMAX-1-7,LCD_HMAX-1,0,LCD_VMAX-1,COLOR_YELLOW);
     //draw left
-    lcd_fill_color(0,8,0,LCD_VMAX,COLOR_RED); //still issue
+    lcd_fill_color(0,7,0,LCD_VMAX-1,COLOR_RED);
 }
