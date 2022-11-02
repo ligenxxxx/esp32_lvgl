@@ -102,30 +102,34 @@ static void lcd_data(uint16_t *tbuf, uint32_t len)
     assert(ret == ESP_OK);
 }
 
-static void lcd_addr_set(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1)
+static void lcd_set_addr(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1)
 {
     lcd_cmd(0x2a);
-    lcd_data8(x0>>8);
-    lcd_data8(x0&0xff);
-    lcd_data8(x1>>8);
-    lcd_data8(x1&0xff);
+    lcd_data8(x0 >> 8);
+    lcd_data8(x0 & 0xff);
+    lcd_data8(x1 >> 8);
+    lcd_data8(x1 & 0xff);
 
     lcd_cmd(0x2b);
-    lcd_data8((y0+34)>>8);
-    lcd_data8((y0+34)&0xff);
-    
+    lcd_data8(y0 >> 8);
+    lcd_data8(y0 & 0xff);
+    lcd_data8(y1 >> 8);
+    lcd_data8(y1 & 0xff);
+
     lcd_cmd(0x2c);
 }
 
 static void lcd_fill_color(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1, uint16_t color)
 {
     uint16_t i;
-    const uint16_t packetSize = 4092/7; // why failed to use 4092/2 ?????
+    const uint16_t packetSize = 2000/8; // why failed to use 4092/2 ?????
     uint16_t tbuf[packetSize];
 
     uint32_t tsize = (x1-x0)*(y1-y0);
     uint16_t tcnt = tsize / packetSize;
     uint16_t tsize_residual = tsize % packetSize;
+
+    printf("\r\n%d,%d,%d,%d: %d, %d", x0, x1, y0, y1, tcnt, tsize_residual);
 
     //swap color
     uint8_t color_h = color >> 8;
@@ -136,9 +140,12 @@ static void lcd_fill_color(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1, u
         tbuf[i] = color;
 
     //set area
-    lcd_addr_set(x0,x1,y0,y1);
+    lcd_set_addr(x0,x1,y0,y1);
 
     //send integral data
+    if(tcnt == 0 && tsize_residual == 0)
+        return;
+
     for(i=0;i<tcnt; i++)
         lcd_data(tbuf, packetSize);
     
@@ -146,70 +153,63 @@ static void lcd_fill_color(uint16_t x0, uint16_t x1, uint16_t y0, uint16_t y1, u
     lcd_data(tbuf, tsize_residual);
 }
 
+#ifdef ZJY_ST7789_240_240
 static void lcd_reg_init(void)
 {
     lcd_cmd(0x11);
     vTaskDelay(120/portTICK_RATE_MS);
     
-    lcd_cmd(0x36);
-    lcd_data8(0x70);
+    lcd_cmd(ST7789_REG_MADCTRL);
+    lcd_data8(0x00);
 
-    lcd_cmd(0x3a);
+    lcd_cmd(ST7789_REG_COLMOD);
     lcd_data8(0x05);
 
-    lcd_cmd(0xb2);
+    lcd_cmd(ST7789_REG_PORCTRL);
     lcd_data8(0x0c);
     lcd_data8(0x0c);
     lcd_data8(0x00);
     lcd_data8(0x33);
     lcd_data8(0x33);
 
-    lcd_cmd(0xb7);
+    lcd_cmd(ST7789_REG_GCTRL);
     lcd_data8(0x35);
 
-    lcd_cmd(0xbb);
-    lcd_data8(0x35);
+    lcd_cmd(ST7789_REG_VCOMS);
+    lcd_data8(0x32);
 
-    lcd_cmd(0xc0);
-    lcd_data8(0x2c);
-
-    lcd_cmd(0xc2);
+    lcd_cmd(ST7789_REG_VDVVRHEN);
     lcd_data8(0x01);
 
-    lcd_cmd(0xc3);
-    lcd_data8(0x13);
+    lcd_cmd(ST7789_REG_VRHS);
+    lcd_data8(0x15);
 
-    lcd_cmd(0xc4);
+    lcd_cmd(ST7789_REG_VDVS);
     lcd_data8(0x20);
 
-    lcd_cmd(0xc6);
+    lcd_cmd(ST7789_REG_FRCTRL2);
     lcd_data8(0x0f);
 
-    lcd_cmd(0xd0);
+    lcd_cmd(ST7789_REG_PWCTRL1);
     lcd_data8(0xa4);
     lcd_data8(0xa1);
 
-    lcd_cmd(0xd6);
-    lcd_data8(0xa1);
-
     uint8_t i;
-    const uint8_t data0[14] = {0xf0, 0x00, 0x04, 0x04, 0x04, 0x05,
-                    0x29, 0x33, 0x3e, 0x38, 0x12, 0x12, 0x28, 0x30};
-    lcd_cmd(0xe0);
+    const uint8_t data0[14] = {0xd0, 0x08, 0x0e, 0x09, 0x09, 0x05,
+                    0x31, 0x33, 0x48, 0x17, 0x14, 0x15, 0x31, 0x34};
+    lcd_cmd(ST7789_REG_PVGAMCTRL);
     for(i=0;i<14;i++)
-    lcd_data8(data0[i]);
+        lcd_data8(data0[i]);
 
-    const uint8_t data1[14] = {0xf0, 0x07, 0x0a, 0x0d, 0x0b, 0x07,
-                    0x28, 0x33, 0x3e, 0x36, 0x14, 0x14, 0x29, 0x32};
-    lcd_cmd(0xe1);
+    const uint8_t data1[14] = {0xd0, 0x08, 0x0e, 0x09, 0x09, 0x15,
+                    0x31, 0x33, 0x48, 0x17, 0x14, 0x15, 0x31, 0x34};
+    lcd_cmd(ST7789_REG_NVGAMCTRL);
     lcd_data8(data1[i]);
+    lcd_cmd(ST7789_REG_INVON);
 
-    lcd_cmd(0x21);
-
-    lcd_cmd(0x11);
-    vTaskDelay(100 / portTICK_RATE_MS);
-    lcd_cmd(0x29);
+    lcd_cmd(ST7789_REG_DISPON);
 }
+#endif
 
 void lcd_driver_init(void)
 {
@@ -247,11 +247,11 @@ void lcd_driver_init(void)
     //draw all
     lcd_fill_color(0,LCD_HMAX,0,LCD_VMAX,COLOR_WHITE);
     //draw top
-    lcd_fill_color(0,LCD_HMAX,0,4,COLOR_BLUE);
+    lcd_fill_color(0,LCD_HMAX,0,8,COLOR_BLUE);
     //draw bottom
-    lcd_fill_color(0,LCD_HMAX,LCD_VMAX-4,LCD_VMAX,COLOR_GREEN);
-    //draw left
-    lcd_fill_color(0,4,0,LCD_VMAX,COLOR_RED);
+    lcd_fill_color(0,LCD_HMAX,LCD_VMAX-8,LCD_VMAX,COLOR_GREEN);
     //draw right
-    lcd_fill_color(LCD_HMAX-4,LCD_HMAX,0,LCD_VMAX,COLOR_YELLOW);
+    lcd_fill_color(LCD_HMAX-8,LCD_HMAX,0,LCD_VMAX,COLOR_YELLOW);
+    //draw left
+    lcd_fill_color(0,8,0,LCD_VMAX,COLOR_RED); //still issue
 }
