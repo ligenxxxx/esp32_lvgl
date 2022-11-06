@@ -6,7 +6,7 @@
 
 #define ZJY_ST7789_240_240
 
-#define LCD_SPI_HANDLE  spi2_handle
+#define LCD_SPI_HANDLE  (spi2_handle)
 
 #ifdef ZJY_ST7789_240_240
 #define PIN_NUM_DC      2

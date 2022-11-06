@@ -18,6 +18,11 @@ IRAM_ATTR void spi_ready(spi_transaction_t *trans)
         #endif
     }
 }
+void lcd_spi_pre_transfer_callback(spi_transaction_t *t)
+{
+    int dc=(int)t->user;
+    gpio_set_level(PIN_NUM_DC, dc);
+}
 
 static void lcd_spi_driver_init()
 {
@@ -26,14 +31,14 @@ static void lcd_spi_driver_init()
         .mode = SPI2_MODE,
         .spics_io_num = PIN_NUM_SPI2_CS,
         .input_delay_ns = SPI2_INPUT_DELAY_NS,
-        .queue_size = SPI_TRANSACTION_POOL_SIZE,
+        .queue_size = SPI2_QUEUE_SIZE,
         .cs_ena_posttrans = 1,
+        .pre_cb = lcd_spi_pre_transfer_callback,
         .post_cb = spi_ready,
     };
 
     esp_err_t ret = spi_bus_add_device(HOST2, &spi2dev_cfg, &LCD_SPI_HANDLE);
-    if(ret != ESP_OK)
-        printf("\r\nspi_bus_add_device() failed");
+    ESP_ERROR_CHECK(ret);
 }
 
 static void lcd_cmd(const uint8_t cmd)
@@ -46,7 +51,6 @@ static void lcd_cmd(const uint8_t cmd)
     t.tx_buffer = &cmd;
     t.user = (void*)0;
 
-    gpio_set_level(PIN_NUM_DC, 0);
     ret = spi_device_polling_transmit(LCD_SPI_HANDLE, &t);
     assert(ret == ESP_OK);
 }
@@ -60,9 +64,8 @@ static void lcd_data8(uint8_t data)
 
     t.length = 8;
     t.tx_buffer = &data;
-    t.user = (void*)0;
+    t.user = (void*)1;
 
-    gpio_set_level(PIN_NUM_DC, 1);
     ret = spi_device_polling_transmit(LCD_SPI_HANDLE, &t);
     assert(ret == ESP_OK);
 }
@@ -83,33 +86,41 @@ static void lcd_set_addr(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 
     lcd_cmd(0x2c);
 }
-IRAM_ATTR void lcd_data_x(uint16_t *dat, uint32_t len, uint32_t user_fg)
+IRAM_ATTR void lcd_data_x(uint16_t *dat, uint32_t len)
 {
     spi_transaction_t t;
     memset(&t, 0, sizeof(t));                             // Zero out the transaction
     t.length = len;                                       // Command is 8 bits
     t.tx_buffer = dat;                                    // The data is the cmd itself
-    t.user = (void *)0;                                   // D/C needs to be set to 0
+    t.user = (void *)1;                                   // D/C needs to be set to 0
+#if(1)
+    spi_device_polling_start(LCD_SPI_HANDLE, &t, portMAX_DELAY);
+    spi_device_polling_end(LCD_SPI_HANDLE, portMAX_DELAY);
+#else
+    //spi_device_acquire_bus(LCD_SPI_HANDLE, portMAX_DELAY);
     esp_err_t ret = spi_device_polling_transmit(LCD_SPI_HANDLE, &t); // Transmit!
-    assert(ret == ESP_OK);                                // Should have had no issues.
+    ESP_ERROR_CHECK(ret);
+    //ret = spi_device_polling_end(LCD_SPI_HANDLE, portMAX_DELAY);
+    //ESP_ERROR_CHECK(ret);
+#endif
 }
 
 #if(0)
-IRAM_ATTR void lcd_data_queue(uint16_t *dat, uint32_t len, uint32_t user_fg)
+IRAM_ATTR void lcd_data_queue(uint16_t *dat, uint32_t len)
 {
-    static spi_transaction_t t[10];
+    static spi_transaction_t t[6];
     static uint32_t i = 0;
 
     memset(&t[i], 0, sizeof(spi_transaction_t));
 
     t[i].length = len;
     t[i].tx_buffer = dat;
-    t[i].user = (void *)user_fg;
+    t[i].user = (void *)1;
     esp_err_t ret = spi_device_queue_trans(LCD_SPI_HANDLE, &t[i], portMAX_DELAY);
     assert(ret == ESP_OK); // Should have had no issues.
 
     i++;
-    if (i == 10)
+    if (i == 6)
     {
         i = 0;
     }
@@ -125,13 +136,12 @@ void lcd_clear(uint16_t color)
     color_swap |= (color >> 8);
 
     lcd_set_addr(0,0, LCD_HMAX-1, LCD_VMAX-1);
-    gpio_set_level(PIN_NUM_DC, 1);
 
     for(i=0;i<(LCD_HMAX<<1);i++)
         color_temp[i] = color_swap;
 
     for(i=0;i<(LCD_VMAX>>1);i++)
-        lcd_data_x(color_temp, LCD_HMAX<<5, 0);
+        lcd_data_x(color_temp, LCD_HMAX<<5);
 }
 
 /*
@@ -164,23 +174,40 @@ IRAM_ATTR void lcd_show(uint16_t x1, uint16_t y1,uint16_t x2, uint16_t y2, uint1
         {
             if ((i + 1) == pcnt && fsize_u16 == 0)
             {
-                lcd_data_x(&color_p[i * psize_u16], (psize_u16 << 4), 4);
+                lcd_data_x(&color_p[i * psize_u16], (psize_u16 << 4));
             }
             else
             {
-                lcd_data_x(&color_p[i * psize_u16], (psize_u16 << 4), 3);
+                lcd_data_x(&color_p[i * psize_u16], (psize_u16 << 4));
             }
         }
     }
     if (fsize_u16)
     {
-        lcd_data_x(&color_p[i * psize_u16], (fsize_u16 << 4), 4);
+        lcd_data_x(&color_p[i * psize_u16], (fsize_u16 << 4));
     }
 }
 
 #ifdef ZJY_ST7789_240_240
-static void lcd_reg_init(void)
+static void lcd_init(void)
 {
+    // init non-spi gpio
+    gpio_pad_select_gpio(PIN_NUM_DC);
+    gpio_pad_select_gpio(PIN_NUM_RST);
+    gpio_pad_select_gpio(PIN_NUM_BLK);
+    gpio_set_direction(PIN_NUM_DC, GPIO_MODE_OUTPUT);
+    gpio_set_direction(PIN_NUM_RST, GPIO_MODE_OUTPUT);
+    gpio_set_direction(PIN_NUM_BLK, GPIO_MODE_OUTPUT);
+
+    //reset
+    gpio_set_level(PIN_NUM_RST, 0);
+    vTaskDelay(100 / portTICK_RATE_MS);
+    gpio_set_level(PIN_NUM_RST, 1);
+    vTaskDelay(100 / portTICK_RATE_MS);
+    //backlight
+    gpio_set_level(PIN_NUM_BLK, 1);
+    vTaskDelay(100 / portTICK_RATE_MS);
+
     lcd_cmd(0x11);
     vTaskDelay(120/portTICK_RATE_MS);
     
@@ -238,28 +265,13 @@ static void lcd_reg_init(void)
 
 void lcd_driver_init(void)
 {
-    // init non-spi gpio
-    gpio_pad_select_gpio(PIN_NUM_DC);
-    gpio_pad_select_gpio(PIN_NUM_RST);
-    gpio_pad_select_gpio(PIN_NUM_BLK);
-    gpio_set_direction(PIN_NUM_DC, GPIO_MODE_OUTPUT);
-    gpio_set_direction(PIN_NUM_RST, GPIO_MODE_OUTPUT);
-    gpio_set_direction(PIN_NUM_BLK, GPIO_MODE_OUTPUT);
 
     //init spi
     spi_driver_init();
     lcd_spi_driver_init();
 
-    //reset
-    gpio_set_level(PIN_NUM_RST, 0);
-    vTaskDelay(100 / portTICK_RATE_MS);
-    gpio_set_level(PIN_NUM_RST, 1);
-    vTaskDelay(100 / portTICK_RATE_MS);
-    //backlight
-    gpio_set_level(PIN_NUM_BLK, 1);
-    vTaskDelay(100 / portTICK_RATE_MS);
 
-    lcd_reg_init();
+    lcd_init();
     lcd_clear(COLOR_BLACK);
 }
 
@@ -280,7 +292,7 @@ void lcdTask()
         lcd_clear(color[cnt%6]);
         
         cnt++;
-        vTaskDelay(1000);
+        vTaskDelay(1);
         
     }
 }

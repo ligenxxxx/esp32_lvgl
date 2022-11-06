@@ -13,13 +13,12 @@ esp_err_t spi_driver_init(void)
     .sclk_io_num = PIN_NUM_SPI2_CLK,
     .quadwp_io_num = -1,
     .quadhd_io_num = -1,
-    .max_transfer_sz = 5120,
+    .max_transfer_sz = 16*240*2+8,
     };
 
 
     esp_err_t ret = spi_bus_initialize(HOST2, &spi2_buf_cfg, SPI_DMA_CH_AUTO);
-    if(ret != ESP_OK)
-        printf("\r\nspi_bus_initialize() failed");
+    ESP_ERROR_CHECK(ret);
 
     return ret;
 }

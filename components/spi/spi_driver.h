@@ -10,10 +10,10 @@
 #define PIN_NUM_SPI2_CS     15
 
 #define SPI2_DMA_CHANNEL    1
-#define SPI2_CLOCK_SPEED_HZ 40000000
+#define SPI2_CLOCK_SPEED_HZ 10000000
 #define SPI2_MODE           0
 #define SPI2_INPUT_DELAY_NS 0
-#define SPI_TRANSACTION_POOL_SIZE 80
+#define SPI2_QUEUE_SIZE     7
 
 esp_err_t spi_driver_init(void);
 
