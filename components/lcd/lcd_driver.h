@@ -52,6 +52,7 @@
 #define ST7789_REG_PORCTRL      0xB2
 #define ST7789_REG_GCTRL        0xB7
 #define ST7789_REG_VCOMS        0xBB
+#define ST7789_REG_LCMCTRL      0xC0
 #define ST7789_REG_VDVVRHEN     0xC2
 #define ST7789_REG_VRHS         0xC3
 #define ST7789_REG_VDVS         0xC4
