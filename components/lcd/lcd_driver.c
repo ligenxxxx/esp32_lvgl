@@ -276,7 +276,26 @@ void lcd_driver_init(void)
     lcd_spi_driver_init();
 
     lcd_init();
-    lcd_clear(COLOR_BLACK);
+    
+    uint16_t color[6] = {
+        COLOR_BLUE,
+        COLOR_BLACK,
+        COLOR_GREEN,
+        COLOR_RED,
+        COLOR_WHITE,
+        COLOR_YELLOW
+    };
+    uint8_t cnt = 0;
+
+    while(1)
+    {
+        lcd_clear(color[cnt%6]);
+        
+        cnt++;
+        vTaskDelay(1000);
+        
+    }
+
 }
 
 void lcdTask()
