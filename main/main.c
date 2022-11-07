@@ -37,6 +37,7 @@ void app_main(void)
     device_init();
     
     xTaskCreate(ledTask, "ledTask", 4096, NULL, 1, NULL);
+    xTaskCreate(shellTask, "shellTask", 4096, NULL, 1, NULL);
     xTaskCreate(lcdTask, "lvglTask", 4096, NULL, 1, NULL);
 
     while(1)

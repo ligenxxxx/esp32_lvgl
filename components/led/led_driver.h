@@ -3,7 +3,7 @@
 
 #include "driver/gpio.h"
 
-#define LED0_PIN 2
+#define LED0_PIN 23
 
 typedef enum
 {
