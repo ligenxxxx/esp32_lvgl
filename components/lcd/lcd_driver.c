@@ -93,7 +93,7 @@ IRAM_ATTR void lcd_data_x(uint16_t *dat, uint32_t len)
     t.length = len;                                       // Command is 8 bits
     t.tx_buffer = dat;                                    // The data is the cmd itself
     t.user = (void *)1;                                   // D/C needs to be set to 0
-#if(1)
+#if(0)
     spi_device_polling_start(LCD_SPI_HANDLE, &t, portMAX_DELAY);
     spi_device_polling_end(LCD_SPI_HANDLE, portMAX_DELAY);
 #else
