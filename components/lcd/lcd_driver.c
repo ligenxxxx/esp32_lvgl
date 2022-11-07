@@ -212,7 +212,7 @@ static void lcd_init(void)
     vTaskDelay(120/portTICK_RATE_MS);
     
     lcd_cmd(ST7789_REG_MADCTRL);
-    lcd_data8(0xc0);
+    lcd_data8(0x00);
 
     lcd_cmd(ST7789_REG_COLMOD);
     lcd_data8(0x05);
@@ -228,16 +228,13 @@ static void lcd_init(void)
     lcd_data8(0x35);
 
     lcd_cmd(ST7789_REG_VCOMS);
-    lcd_data8(0x19);
-
-    lcd_cmd(ST7789_REG_LCMCTRL);
-    lcd_data8(0x2c);
+    lcd_data8(0x32);
 
     lcd_cmd(ST7789_REG_VDVVRHEN);
     lcd_data8(0x01);
 
     lcd_cmd(ST7789_REG_VRHS);
-    lcd_data8(0x12);
+    lcd_data8(0x15);
 
     lcd_cmd(ST7789_REG_VDVS);
     lcd_data8(0x20);
@@ -250,14 +247,14 @@ static void lcd_init(void)
     lcd_data8(0xa1);
 
     uint8_t i;
-    const uint8_t data0[14] = {0xd0, 0x04, 0x0d, 0x11, 0x13, 0x2b,
-                    0x3f, 0x54, 0x4c, 0x18, 0x0d, 0x0b, 0x1f, 0x23};
+    const uint8_t data0[14] = {0xd0, 0x08, 0x0e, 0x09, 0x09, 0x05,
+                    0x31, 0x33, 0x48, 0x17, 0x14, 0x15, 0x31, 0x34};
     lcd_cmd(ST7789_REG_PVGAMCTRL);
     for(i=0;i<14;i++)
         lcd_data8(data0[i]);
 
-    const uint8_t data1[14] = {0xd0, 0x04, 0x0c, 0x11, 0x13, 0x2c,
-                    0x3f, 0x44, 0x51, 0x2f, 0x1f, 0x1f, 0x20, 0x23};
+    const uint8_t data1[14] = {0xd0, 0x08, 0x0e, 0x09, 0x09, 0x15,
+                    0x31, 0x33, 0x48, 0x17, 0x14, 0x15, 0x31, 0x34};
     lcd_cmd(ST7789_REG_NVGAMCTRL);
     for(i=0;i<14;i++)
         lcd_data8(data1[i]);
@@ -276,26 +273,6 @@ void lcd_driver_init(void)
     lcd_spi_driver_init();
 
     lcd_init();
-    
-    uint16_t color[6] = {
-        COLOR_BLUE,
-        COLOR_BLACK,
-        COLOR_GREEN,
-        COLOR_RED,
-        COLOR_WHITE,
-        COLOR_YELLOW
-    };
-    uint8_t cnt = 0;
-
-    while(1)
-    {
-        lcd_clear(color[cnt%6]);
-        
-        cnt++;
-        vTaskDelay(1000);
-        
-    }
-
 }
 
 void lcdTask()
@@ -315,7 +292,7 @@ void lcdTask()
         lcd_clear(color[cnt%6]);
         
         cnt++;
-        vTaskDelay(1);
+        vTaskDelay(200);
         
     }
 }

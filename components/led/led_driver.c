@@ -88,7 +88,6 @@ uint8_t led_update(uint32_t sysMs)
         default:
         break;
     }
-
     return ret;
 
 }
@@ -102,7 +101,7 @@ void ledTask()
 
     while(1)
     {
-        led_update(xTaskGetTickCount()*10);
-        vTaskDelay(20 / portTICK_PERIOD_MS);
+        led_update(xTaskGetTickCount());
+        vTaskDelay(50);
     }
 }
