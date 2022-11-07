@@ -35,11 +35,11 @@ void device_init(void)
 void app_main(void)
 {
     device_init();
-
+#if(0)
     xTaskCreate(shellTask, "shellTask", 4096, NULL, 1, NULL);
     xTaskCreate(ledTask, "ledTask", 4096, NULL, 1, NULL);
     xTaskCreate(lcdTask, "lvglTask", 4096, NULL, 1, NULL);
-
+#endif
     while(1)
     {
         vTaskDelay(1);
