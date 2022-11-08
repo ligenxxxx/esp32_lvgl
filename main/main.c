@@ -17,6 +17,7 @@
 #include "../components/lcd/lcd_driver.h"
 #include "../components/joystick/joystick_driver.h"
 #include "../components/shell/shell.h"
+#include "../components/lvgl-8.3.3/lvgl.h"
 
 void uart_init(void)
 {
@@ -35,6 +36,7 @@ void device_init(void)
 void app_main(void)
 {
     device_init();
+    lv_init();
     
     xTaskCreate(ledTask, "ledTask", 4096, NULL, 1, NULL);
     xTaskCreate(shellTask, "shellTask", 4096, NULL, 1, NULL);
