@@ -10,7 +10,7 @@
 
 #ifdef ZJY_ST7789_240_240
 #define PIN_NUM_DC      2
-#define PIN_NUM_RST     4
+#define PIN_NUM_RST     23
 #define PIN_NUM_BLK     5
 #define LCD_HMAX        240
 #define LCD_VMAX        240
