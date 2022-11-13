@@ -70,4 +70,5 @@
 
 void lcd_driver_init(void);
 void lcdTask();
+void lcd_show(uint16_t x1, uint16_t y1,uint16_t x2, uint16_t y2, uint16_t *color_p);
 #endif
