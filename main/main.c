@@ -46,11 +46,14 @@ esp_err_t timer_init(void)
 
 IRAM_ATTR void lvgl_task(void *arg)
 {
+    #if(0)
     lv_obj_t *btn1 = lv_btn_create(lv_scr_act());
     lv_obj_set_size(btn1, 128, 64);
     lv_obj_set_style_bg_color(btn1, lv_color_hex(0xff0000), 0);
     lv_obj_center(btn1);
-   //lv_demo_music();
+    #else
+    lv_demo_music();
+    #endif
    while (true)
    {
       vTaskDelay(1);
