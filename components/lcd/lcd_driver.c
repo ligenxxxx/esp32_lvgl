@@ -18,11 +18,6 @@ IRAM_ATTR void spi_ready(spi_transaction_t *trans)
         #endif
     }
 }
-void lcd_spi_pre_transfer_callback(spi_transaction_t *t)
-{
-    int dc=(int)t->user;
-    gpio_set_level(PIN_NUM_DC, dc);
-}
 
 static void lcd_spi_driver_init()
 {
@@ -33,7 +28,7 @@ static void lcd_spi_driver_init()
         .input_delay_ns = SPI2_INPUT_DELAY_NS,
         .queue_size = SPI2_QUEUE_SIZE,
         .cs_ena_posttrans = 1,
-        .pre_cb = lcd_spi_pre_transfer_callback,
+        .pre_cb = NULL,
         .post_cb = spi_ready,
     };
 
@@ -41,7 +36,7 @@ static void lcd_spi_driver_init()
     ESP_ERROR_CHECK(ret);
 }
 
-static void lcd_cmd(const uint8_t cmd)
+IRAM_ATTR static void lcd_cmd(const uint8_t cmd)
 {
     esp_err_t ret;
     spi_transaction_t t;
@@ -49,13 +44,13 @@ static void lcd_cmd(const uint8_t cmd)
 
     t.length = 8;
     t.tx_buffer = &cmd;
-    t.user = (void*)0;
-
+    //t.user = (void*)0;
+    LCD_CMD_MODE;
     ret = spi_device_polling_transmit(LCD_SPI_HANDLE, &t);
     assert(ret == ESP_OK);
 }
 
-static void lcd_data8(uint8_t data)
+IRAM_ATTR static void lcd_data8(uint8_t data)
 {
 
     spi_transaction_t t;
@@ -64,13 +59,13 @@ static void lcd_data8(uint8_t data)
 
     t.length = 8;
     t.tx_buffer = &data;
-    t.user = (void*)1;
-
+    //t.user = (void*)1;
+    LCD_DAT_MODE;
     ret = spi_device_polling_transmit(LCD_SPI_HANDLE, &t);
     assert(ret == ESP_OK);
 }
 
-static void lcd_set_addr(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+IRAM_ATTR static void lcd_set_addr(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 {
     lcd_cmd(0x2a);
     lcd_data8(x1 >> 8);
@@ -92,17 +87,11 @@ IRAM_ATTR void lcd_data_x(uint16_t *dat, uint32_t len)
     memset(&t, 0, sizeof(t));                             // Zero out the transaction
     t.length = len;                                       // Command is 8 bits
     t.tx_buffer = dat;                                    // The data is the cmd itself
-    t.user = (void *)1;                                   // D/C needs to be set to 0
-#if(0)
-    spi_device_polling_start(LCD_SPI_HANDLE, &t, portMAX_DELAY);
-    spi_device_polling_end(LCD_SPI_HANDLE, portMAX_DELAY);
-#else
-    //spi_device_acquire_bus(LCD_SPI_HANDLE, portMAX_DELAY);
+    //t.user = (void *)1;                                   // D/C needs to be set to 0
+    LCD_DAT_MODE;
+
     esp_err_t ret = spi_device_polling_transmit(LCD_SPI_HANDLE, &t); // Transmit!
     ESP_ERROR_CHECK(ret);
-    //ret = spi_device_polling_end(LCD_SPI_HANDLE, portMAX_DELAY);
-    //ESP_ERROR_CHECK(ret);
-#endif
 }
 
 #if(0)
@@ -161,7 +150,6 @@ IRAM_ATTR void lcd_show(uint16_t x1, uint16_t y1,uint16_t x2, uint16_t y2, uint1
     uint32_t i=0;
 
     lcd_set_addr(x1, y1, x2, y2);
-    gpio_set_level(PIN_NUM_DC, 1);
 
     if (tsize == 0)
     {
@@ -274,7 +262,7 @@ void lcd_driver_init(void)
 
     lcd_init();
 }
-
+#if(0)
 void lcdTask()
 {
     uint16_t color[6] = {
@@ -296,3 +284,4 @@ void lcdTask()
         
     }
 }
+#endif

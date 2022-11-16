@@ -16,6 +16,9 @@
 #define LCD_VMAX        240
 #endif
 
+#define LCD_DAT_MODE    gpio_set_level(PIN_NUM_DC, 1)
+#define LCD_CMD_MODE    gpio_set_level(PIN_NUM_DC, 0)
+
 #define ST7789_REG_SLPIN        0x10
 #define ST7789_REG_SLPOUT       0x11
 #define ST7789_REG_PTLON        0x12
@@ -69,6 +72,8 @@
 #define COLOR_YELLOW    0xffe0
 
 void lcd_driver_init(void);
+#if(0)
 void lcdTask();
+#endif
 void lcd_show(uint16_t x1, uint16_t y1,uint16_t x2, uint16_t y2, uint16_t *color_p);
 #endif
