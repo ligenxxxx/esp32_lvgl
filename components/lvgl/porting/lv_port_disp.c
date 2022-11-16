@@ -25,7 +25,6 @@
     #warning Please define or replace the macro MY_DISP_HOR_RES with the actual screen height, default value 240 is used for now.
     #define MY_DISP_VER_RES    240
 #endif
-#define BUF_LINE_NUM  128
 
 /**********************
  *      TYPEDEFS
@@ -93,10 +92,10 @@ void lv_port_disp_init(void)
     #endif
     
     static lv_disp_draw_buf_t draw_buf_dsc_1;
-    lv_color_t * buf_1 = heap_caps_malloc(MY_DISP_HOR_RES*120*sizeof(lv_color_t),MALLOC_CAP_DMA);
-    lv_color_t * buf_2 = heap_caps_malloc(MY_DISP_HOR_RES*120*sizeof(lv_color_t),MALLOC_CAP_DMA);
+    lv_color_t * buf_1 = heap_caps_malloc(MY_DISP_HOR_RES*BUF_LINE_NUM*sizeof(lv_color_t),MALLOC_CAP_DMA);
+    lv_color_t * buf_2 = heap_caps_malloc(MY_DISP_HOR_RES*BUF_LINE_NUM*sizeof(lv_color_t),MALLOC_CAP_DMA);
      
-    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, buf_2, MY_DISP_HOR_RES * 120);   /*Initialize the display buffer*/
+    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, buf_2, MY_DISP_HOR_RES * BUF_LINE_NUM);   /*Initialize the display buffer*/
 
 #if(0)
     /* Example for 2) */

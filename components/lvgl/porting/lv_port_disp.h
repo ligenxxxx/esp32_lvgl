@@ -27,6 +27,7 @@ extern "C" {
  *********************/
 #define MY_DISP_HOR_RES 240
 #define MY_DISP_VER_RES 240
+#define BUF_LINE_NUM  128
 /**********************
  *      TYPEDEFS
  **********************/
