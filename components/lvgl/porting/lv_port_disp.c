@@ -43,6 +43,7 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 /**********************
  *  STATIC VARIABLES
  **********************/
+static lv_disp_drv_t disp_drv;                         /*Descriptor of a display driver*/
 
 /**********************
  *      MACROS
@@ -85,9 +86,18 @@ void lv_port_disp_init(void)
      */
 
     /* Example for 1) */
+    #if(0)
     static lv_disp_draw_buf_t draw_buf_dsc_1;
     static lv_color_t buf_1[MY_DISP_HOR_RES * BUF_LINE_NUM];                          /*A buffer for 10 rows*/
     lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * BUF_LINE_NUM);   /*Initialize the display buffer*/
+    #endif
+    
+    static lv_disp_draw_buf_t draw_buf_dsc_1;
+    lv_color_t * buf_1 = heap_caps_malloc(MY_DISP_HOR_RES*120*sizeof(lv_color_t),MALLOC_CAP_DMA);
+    lv_color_t * buf_2 = heap_caps_malloc(MY_DISP_HOR_RES*120*sizeof(lv_color_t),MALLOC_CAP_DMA);
+     
+    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, buf_2, MY_DISP_HOR_RES * 120);   /*Initialize the display buffer*/
+
 #if(0)
     /* Example for 2) */
     static lv_disp_draw_buf_t draw_buf_dsc_2;
@@ -106,7 +116,6 @@ void lv_port_disp_init(void)
      * Register the display in LVGL
      *----------------------------------*/
 
-    static lv_disp_drv_t disp_drv;                         /*Descriptor of a display driver*/
     lv_disp_drv_init(&disp_drv);                    /*Basic initialization*/
 
     /*Set up the functions to access to your display*/
@@ -164,28 +173,21 @@ void disp_disable_update(void)
  *'lv_disp_flush_ready()' has to be called when finished.*/
 static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
-    if(disp_flush_enabled) {
+    //if(disp_flush_enabled) {
         /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
-#if(1)
     lcd_show(area->x1, area->y1, area->x2, area->y2, &(color_p->full));
-#else
-        int32_t x;
-        int32_t y;
-        for(y = area->y1; y <= area->y2; y++) {
-            for(x = area->x1; x <= area->x2; x++) {
-                /*Put a pixel to the display. For example:*/
-                /*put_px(x, y, *color_p)*/
-                color_p++;
-            }
-        }
-#endif
-    }
+    //}
 
     /*IMPORTANT!!!
      *Inform the graphics library that you are ready with the flushing*/
-    lv_disp_flush_ready(disp_drv);
+    //lv_disp_flush_ready(disp_drv);
 }
 
+void spi_disp_flush_ready(void)
+{
+    lv_disp_flush_ready(&disp_drv);
+
+}
 /*OPTIONAL: GPU INTERFACE*/
 
 /*If your MCU has hardware accelerator (GPU) then you can use it to fill a memory with a color*/

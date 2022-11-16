@@ -13,7 +13,7 @@
 #define SPI2_CLOCK_SPEED_HZ 40000000
 #define SPI2_MODE           0
 #define SPI2_INPUT_DELAY_NS 0
-#define SPI2_QUEUE_SIZE     80
+#define SPI2_QUEUE_SIZE     64
 
 esp_err_t spi_driver_init(void);
 
