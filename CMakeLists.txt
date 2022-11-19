@@ -11,6 +11,7 @@ set(EXTRA_COMPONENT_DIRS "$(EXTRA_COMPONENT_DIRS) components/timer")
 set(EXTRA_COMPONENT_DIRS "$(EXTRA_COMPONENT_DIRS) components/lcd")
 set(EXTRA_COMPONENT_DIRS "$(EXTRA_COMPONENT_DIRS) components/joystick")
 set(EXTRA_COMPONENT_DIRS "$(EXTRA_COMPONENT_DIRS) components/lvgl")
+set(EXTRA_COMPONENT_DIRS "$(EXTRA_COMPONENT_DIRS) components/ui")
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(esp32_lvgl)

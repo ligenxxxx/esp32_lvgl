@@ -21,8 +21,7 @@
 #include "../components/lvgl/lvgl.h"
 #include "../components/lvgl/porting/lv_port_disp.h"
 #include "../components/lvgl/demos/lv_demos.h"
-
-#if(1)
+#include "../components/ui/src/ui_main.h"
 
 static esp_timer_handle_t lvgl_timer_handle = NULL;
 static IRAM_ATTR void lv_timer_cb(void *arg)
@@ -43,24 +42,6 @@ esp_err_t timer_init(void)
    err = esp_timer_start_periodic(lvgl_timer_handle, 1000); // 1ms
    return err;
 }
-
-IRAM_ATTR void lvgl_task(void *arg)
-{
-    #if(0)
-    lv_obj_t *btn1 = lv_btn_create(lv_scr_act());
-    lv_obj_set_size(btn1, 128, 64);
-    lv_obj_set_style_bg_color(btn1, lv_color_hex(0xff0000), 0);
-    lv_obj_center(btn1);
-    #else
-    lv_demo_music();
-    #endif
-   while (true)
-   {
-      vTaskDelay(1);
-      lv_task_handler();
-   }
-}
-#endif
 
 void uart_init(void)
 {
@@ -86,7 +67,7 @@ void app_main(void)
     
     xTaskCreate(ledTask, "ledTask", 4096, NULL, 1, NULL);
     xTaskCreate(shellTask, "shellTask", 4096, NULL, 1, NULL);
-    xTaskCreate(lvgl_task, "lvglTask", 4096, NULL, 1, NULL);
+    xTaskCreate(ui_main_task, "ui_main_task", 4096, NULL, 1, NULL);
 
     while(1)
     {
