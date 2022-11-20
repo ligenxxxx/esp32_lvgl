@@ -110,7 +110,6 @@ void select_arc_area_a()
     {
         lv_style_set_arc_width(&style_array[index], 50);
         lv_style_set_arc_color(&style_array[index], lv_color_hex(color_array[index][1]));
-        //lv_layer
         lv_obj_move_foreground(obj_arc[index]);
     }
     else
@@ -154,20 +153,20 @@ void ui_main_task()
         obj_arc[i] = create_arc(obj_background, i);
     }
 
-        obj_instrument_profile = creatr_imstrument_profile(obj_background);
+    obj_instrument_profile = creatr_imstrument_profile(obj_background);
 
-        //i = 5;
-        //select_arc_area(i, 1);
-        #if(1)
-        lv_anim_t a;
-        lv_anim_init(&a);
-        lv_anim_set_exec_cb(&a, select_arc_area_a);
-        lv_anim_set_time(&a, 10000);
-        lv_anim_set_playback_delay(&a, 100);
-        lv_anim_set_playback_time(&a, 300);
-        lv_anim_set_repeat_delay(&a, 500);
-        lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
-        lv_anim_start(&a);
+    //i = 5;
+    //select_arc_area(i, 1);
+    #if(1)
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_exec_cb(&a, select_arc_area_a);
+    lv_anim_set_time(&a, 10000);
+    lv_anim_set_playback_delay(&a, 100);
+    lv_anim_set_playback_time(&a, 300);
+    lv_anim_set_repeat_delay(&a, 500);
+    lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_start(&a);
     #endif
       
    while (1)
