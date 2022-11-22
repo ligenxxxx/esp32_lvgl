@@ -100,8 +100,8 @@ static void set_angle_value()
             {
                 if(blink_cnt & 2)
                 {
-                    indic[0]->type_data.arc.color =  lv_color_hex(color_array[13]);
-                    indic[1]->type_data.arc.color =  lv_color_hex(color_array[13]);
+                    indic[0]->type_data.arc.color =  lv_color_hex(color_array[12]);
+                    indic[1]->type_data.arc.color =  lv_color_hex(color_array[12]);
                 }
                 else
                 {
