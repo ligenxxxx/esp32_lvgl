@@ -40,7 +40,7 @@ uint32_t color_array[13] = {
     0xff980d, // 255, 152, 13
     0xff550d, // 255, 85,  13
     0xff0d0d, // 255, 13,  13
-    0x000000, // 0  , 0 ,  0
+    0xffffff, // 255, 255, 255
 };
 
 static lv_obj_t *create_background(lv_obj_t *parent)
