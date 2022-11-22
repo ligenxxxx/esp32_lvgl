@@ -4,40 +4,42 @@
 #include "../../lvgl/lvgl.h"
 #include "../../lvgl/demos/lv_demos.h"
 
-const uint16_t loc[12][2] = {
-    {0, 30},
-    {30,40},
-    {40,45},
-    {45,50},
-    {50,60},
-    {60,90},
-    {90,120},
-    {120,130},
-    {130,135},
-    {135,140},
-    {140,150},
-    {150,180},
-};
-
-uint32_t color_array[12][2] = {
-    {0x851a01,0x851a01},
-    {0xc44b00,0xff6c11},
-    {0x8a5500,0xea9100},
-    {0xa89c00,0xffed09},
-    {0x586a0a,0xb4d915},
-    {0x055b01,0x23fc18},
-    {0x055b01,0x23fc18},
-    {0x586a0a,0xb4d915},
-    {0xa89c00,0xffed09},
-    {0x8a5500,0xea9100},
-    {0xc44b00,0xff6c11},
-    {0x851a01,0x851a01},
-};
-
 static lv_obj_t *obj_background; 
 static lv_obj_t *obj_instrument_profile;
-static lv_style_t style_array[16];
-static lv_obj_t *obj_arc[16];
+static lv_obj_t *obj_meter;
+static lv_meter_scale_t *scale[2];
+static lv_meter_indicator_t *indic[2];
+
+int angle = -90;
+const int16_t loc[12][2] = {
+    {-90, -60},
+    {-60, -50},
+    {-50, -45},
+    {-45, -40},
+    {-40, -30},
+    {-30,  0 },
+    { 0 ,  30},
+    { 30,  40},
+    { 40,  45},
+    { 45,  50},
+    { 50,  60},
+    { 60,  90},
+};
+
+uint32_t color_array[12] = {
+    0xff0d0d, // 255, 13,  13
+    0xff550d, // 255, 85,  13
+    0xff980d, // 255, 152, 13
+    0xfff90d, // 255, 249, 13
+    0x58ff0d, // 158, 255, 13
+    0x31ff0d, // 49,  255, 13
+    0x31ff0d, // 49,  255, 13
+    0x58ff0d, // 158, 255, 13
+    0xfff90d, // 255, 249, 13
+    0xff980d, // 255, 152, 13
+    0xff550d, // 255, 85,  13
+    0xff0d0d, // 255, 13,  13
+};
 
 static lv_obj_t *create_background(lv_obj_t *parent)
 {
@@ -65,93 +67,77 @@ static lv_obj_t *creatr_imstrument_profile(lv_obj_t *parent)
     return obj;
 }
 
-lv_obj_t *create_arc(lv_obj_t *parent, uint16_t index)
+static void set_angle_value()
 {
-    lv_obj_t *arc;
 
-
-    arc = lv_arc_create(parent);
-    lv_obj_set_size(arc,200,200);
-    lv_obj_remove_style(arc, NULL, LV_PART_KNOB);
-    lv_arc_set_rotation(arc, 180);
-    lv_arc_set_bg_angles(arc, loc[index][0],loc[index][1]);
-    lv_arc_set_value(arc, 0);
-    lv_obj_add_style(arc, &style_array[index], 0);
-
-    lv_obj_set_pos(arc, 20, 81);
-
-    return arc;
-}
-
-void select_arc_area(uint16_t index, uint8_t select)
-{
-    printf("\r\n%d", index);
-    if(select)
+    if(angle <= 0)
     {
-        lv_style_set_arc_width(&style_array[index], 50);
-        lv_style_set_arc_color(&style_array[index], lv_color_hex(color_array[index][1]));
-        lv_obj_move_foreground(obj_arc[index]);
+        lv_meter_set_indicator_end_value(obj_meter, indic[1],0);
+        lv_meter_set_indicator_start_value(obj_meter, indic[0], angle);
     }
+    else if(angle > 0)
+    {
+        lv_meter_set_indicator_start_value(obj_meter, indic[0], 0);
+        lv_meter_set_indicator_end_value(obj_meter, indic[1],angle);
+    }
+    #if(0)
     else
     {
-        lv_style_set_arc_width(&style_array[index], 40);
-        lv_style_set_arc_color(&style_array[index], lv_color_hex(color_array[index][0]));
-        lv_obj_move_foreground(obj_instrument_profile);
+        lv_meter_set_indicator_start_value(obj_meter, indic[0], -3);
+        lv_meter_set_indicator_end_value(obj_meter, indic[1],3);
     }
-}
+    #endif
+
+
 #if(1)
-void select_arc_area_a()
-{
-    static uint16_t add = 1;
-    static uint16_t select = 1;
-    static uint16_t index = 0;
-
-    if(select)
-    {
-        lv_style_set_arc_width(&style_array[index], 50);
-        lv_style_set_arc_color(&style_array[index], lv_color_hex(color_array[index][1]));
-        lv_obj_move_foreground(obj_arc[index]);
-    }
-    else
-    {
-        lv_style_set_arc_width(&style_array[index], 40);
-        lv_style_set_arc_color(&style_array[index], lv_color_hex(color_array[index][0]));
-        lv_obj_move_background(obj_arc[index]);
-    }
-
-    printf("\r\n%d, %d, %d",index, select, add);
-    if(add)
-        index ++;
-    else
-        index --;
-    if(index == 12)
-    {
-        select = 1 - select;
-        add = 0;
-        index = 11;
-    }
-    else if(index > 12)
-    {
-        add = 1;
-        select = 1 - select;
-        index = 0;
-    }
-}
+    angle += 1;
+    if(angle >90)
+        angle = -90;
 #endif
-void ui_main_task()
+}
+
+static lv_obj_t *create_meter(lv_obj_t *parent)
 {
-    uint8_t i;
+    lv_obj_t *meter;
+
+    meter = lv_meter_create(parent);
+    lv_obj_set_size(meter, 194, 194);
+    lv_obj_set_pos(meter, 23,82);
+
+    lv_obj_remove_style(meter, NULL, LV_PART_INDICATOR);
+
+    //left
+    scale[0] = lv_meter_add_scale(meter);
+    lv_meter_set_scale_range(meter, scale[0], -90, 0, 90, 180);
+    lv_meter_set_scale_ticks(meter, scale[0], 7, 2, 8, lv_color_black());
+    indic[0] = lv_meter_add_arc(meter,scale[0], 30, lv_color_hex(color_array[5]), 10);
+    //lv_meter_set_indicator_start_value(meter, indic[0], -90);
+    lv_meter_set_indicator_end_value(meter, indic[0], 0); //locked end value
+    
+    #if(0)
+    lv_meter_indicator_t * indicc = _lv_ll_ins_head(&((lv_meter_t *)meter)->indicator_ll);
+    indicc->type_data.arc.color = lv_color_hex(color_array[0]);
+    lv_obj_invalidate(meter);
+    #endif
+
+    //right
+    scale[1] = lv_meter_add_scale(meter);
+    lv_meter_set_scale_range(meter, scale[1], 0, 90, 90, 270);
+    lv_meter_set_scale_ticks(meter, scale[1], 7, 2, 8, lv_color_black());
+    indic[1] = lv_meter_add_arc(meter,scale[1], 30, lv_color_hex(color_array[5]), 10);
+    //lv_meter_set_indicator_start_value(meter, indic[1], 0); //locked start value
+    lv_meter_set_indicator_end_value(meter, indic[1],90);
+
+    //set_angle_value();
+    return meter;
+}
+
+void ui_main_task(void)
+{
+
     obj_background = create_background(lv_scr_act());
 
-    for(i=0;i<12;i++)
-    {
-        lv_style_init(&style_array[i]);
-        lv_style_set_arc_color(&style_array[i], lv_color_hex(color_array[i][0]));
-        lv_style_set_arc_rounded(&style_array[i], false);
-        lv_style_set_arc_width(&style_array[i], 40);
-
-        obj_arc[i] = create_arc(obj_background, i);
-    }
+    obj_meter = create_meter(obj_background);
 
     obj_instrument_profile = creatr_imstrument_profile(obj_background);
 
@@ -160,15 +146,15 @@ void ui_main_task()
     #if(1)
     lv_anim_t a;
     lv_anim_init(&a);
-    lv_anim_set_exec_cb(&a, select_arc_area_a);
+    lv_anim_set_exec_cb(&a, set_angle_value);
     lv_anim_set_time(&a, 10000);
     lv_anim_set_playback_delay(&a, 100);
-    lv_anim_set_playback_time(&a, 300);
-    lv_anim_set_repeat_delay(&a, 500);
+    lv_anim_set_playback_time(&a, 0);
+    lv_anim_set_repeat_delay(&a, 0);
     lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
     lv_anim_start(&a);
     #endif
-      
+    
    while (1)
    {
       vTaskDelay(1);
