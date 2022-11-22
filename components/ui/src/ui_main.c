@@ -73,7 +73,7 @@ static void set_angle_value()
 {
     static uint8_t lst_color_index = 0xff;
     static uint8_t blink_cnt = 0;
-    static uint8_t blink = 1;
+    static uint8_t is_blink = 1;
     uint8_t i;
 
     if(angle < -90)
@@ -82,11 +82,11 @@ static void set_angle_value()
         angle = 90;
 
     if(angle <= angle_warning[0] || angle >= angle_warning[1])
-        blink = 1;
+        is_blink = 1;
     else
-        blink = 0;
+        is_blink = 0;
 
-    if(blink)
+    if(is_blink)
         blink_cnt ++;
     else
         blink_cnt = 0;
@@ -96,7 +96,7 @@ static void set_angle_value()
     {
         if(angle >= loc[i][0] && angle < loc[i][1])
         {
-            if(lst_color_index != i || blink)
+            if(lst_color_index != i || is_blink)
             {
                 if(blink_cnt & 2)
                 {
