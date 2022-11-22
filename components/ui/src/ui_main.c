@@ -56,7 +56,7 @@ static lv_obj_t *create_background(lv_obj_t *parent)
     return obj;
 }
 
-static lv_obj_t *creatr_imstrument_profile(lv_obj_t *parent)
+static lv_obj_t *create_instrument_profile(lv_obj_t *parent)
 {
     lv_obj_t *obj;
 
@@ -160,14 +160,13 @@ static lv_obj_t *create_meter(lv_obj_t *parent)
     lv_meter_set_scale_ticks(meter, scale[0], 7, 2, 8, lv_color_black());
     indic[0] = lv_meter_add_arc(meter,scale[0], 30, lv_color_hex(color_array[5]), 10);
     lv_meter_set_indicator_end_value(meter, indic[0], 0); //locked end value
-    
 
     //right
     scale[1] = lv_meter_add_scale(meter);
     lv_meter_set_scale_range(meter, scale[1], 0, 90, 90, 270);
     lv_meter_set_scale_ticks(meter, scale[1], 7, 2, 8, lv_color_black());
     indic[1] = lv_meter_add_arc(meter,scale[1], 30, lv_color_hex(color_array[5]), 10);
-    lv_meter_set_indicator_end_value(meter, indic[1],90);
+    lv_meter_set_indicator_end_value(meter, indic[1],90); //locked start value
 
     return meter;
 }
@@ -179,7 +178,7 @@ void ui_main_task(void)
 
     obj_meter = create_meter(obj_background);
 
-    obj_instrument_profile = creatr_imstrument_profile(obj_background);
+    obj_instrument_profile = create_instrument_profile(obj_background);
 
     #if(1)
     lv_anim_t a;
