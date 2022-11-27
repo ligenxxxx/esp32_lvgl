@@ -1,3 +1,5 @@
+
+#include <stdio.h>
 #include "ui_main.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -9,6 +11,7 @@ static lv_obj_t *obj_instrument_profile;
 static lv_obj_t *obj_meter;
 static lv_meter_scale_t *scale[2];
 static lv_meter_indicator_t *indic[2];
+static lv_obj_t *obj_label;
 
 int angle = -90;
 int angle_warning[2] = {-45,45};
@@ -43,7 +46,7 @@ uint32_t color_array[13] = {
     0xff980d, // 255, 152, 13
     0xff550d, // 255, 85,  13
     0xff0d0d, // 255, 13,  13
-    0xffffff, // 255, 255, 255
+    0x404040, // 0,   0,   0   blink bg color
 };
 
 static lv_obj_t *create_background(lv_obj_t *parent)
@@ -156,6 +159,15 @@ static void angle_add(void)
 #endif
 }
 
+static void update_meter_string(void)
+{
+    char str[11] = "";
+    int angle_abs = (angle < 0) ? (0-angle) : angle;
+
+    sprintf(str, "%d", angle_abs);
+    lv_label_set_text(obj_label, str);
+}
+
 static void update_meter()
 {
 
@@ -163,7 +175,8 @@ static void update_meter()
     update_blink_status();
     update_meter_color();
     update_meter_angle();
-
+    update_meter_string();
+    
     angle_add();
 }
 
@@ -172,6 +185,7 @@ static lv_obj_t *create_meter(lv_obj_t *parent)
     lv_obj_t *meter;
 
     meter = lv_meter_create(parent);
+    lv_obj_set_style_bg_color(meter, lv_color_hex(color_array[12]), 0);
     lv_obj_set_size(meter, 194, 194);
     lv_obj_set_pos(meter, 23,82);
 
@@ -180,18 +194,29 @@ static lv_obj_t *create_meter(lv_obj_t *parent)
     //left
     scale[0] = lv_meter_add_scale(meter);
     lv_meter_set_scale_range(meter, scale[0], -90, 0, 90, 180);
-    lv_meter_set_scale_ticks(meter, scale[0], 7, 2, 8, lv_color_black());
+    lv_meter_set_scale_ticks(meter, scale[0], 7, 2, 8, lv_color_white());
     indic[0] = lv_meter_add_arc(meter,scale[0], 30, lv_color_hex(color_array[5]), 10);
     lv_meter_set_indicator_end_value(meter, indic[0], 0); //locked end value
 
     //right
     scale[1] = lv_meter_add_scale(meter);
     lv_meter_set_scale_range(meter, scale[1], 0, 90, 90, 270);
-    lv_meter_set_scale_ticks(meter, scale[1], 7, 2, 8, lv_color_black());
+    lv_meter_set_scale_ticks(meter, scale[1], 7, 2, 8, lv_color_white());
     indic[1] = lv_meter_add_arc(meter,scale[1], 30, lv_color_hex(color_array[5]), 10);
     lv_meter_set_indicator_end_value(meter, indic[1],90); //locked start value
 
     return meter;
+}
+
+static lv_obj_t *create_label(lv_obj_t *parent)
+{
+    lv_obj_t *label = lv_label_create(parent);
+    lv_obj_set_style_text_color(parent, lv_color_hex(0xffffff), LV_PART_MAIN);
+    lv_obj_align(label, LV_ALIGN_CENTER, 0, 40);
+
+    lv_label_set_text(label, "0");
+
+    return label;
 }
 
 void ui_main_task(void)
@@ -202,6 +227,8 @@ void ui_main_task(void)
     obj_meter = create_meter(obj_background);
 
     obj_instrument_profile = create_instrument_profile(obj_background);
+    
+    obj_label = create_label(obj_background);
 
     #if(1)
     lv_anim_t a;
