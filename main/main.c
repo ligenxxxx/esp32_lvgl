@@ -16,6 +16,7 @@
 #include "../components/i2c/i2c_driver.h"
 #include "../components/timer/timer.h"
 #include "../components/lcd/lcd_driver.h"
+#include "../components/gyro/mpu6050.h"
 #include "../components/joystick/joystick_driver.h"
 #include "../components/shell/shell.h"
 #include "../components/lvgl/lvgl.h"
@@ -67,6 +68,7 @@ void app_main(void)
     
     xTaskCreate(ledTask, "ledTask", 4096, NULL, 1, NULL);
     xTaskCreate(shellTask, "shellTask", 4096, NULL, 1, NULL);
+    xTaskCreate(mpu6050_task, "mpu6050_task", 4096, NULL, 1, NULL);
     xTaskCreate(ui_main_task, "ui_main_task", 4096, NULL, 1, NULL);
 
     while(1)

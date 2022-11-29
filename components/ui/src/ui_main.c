@@ -5,6 +5,7 @@
 #include "freertos/task.h"
 #include "../../lvgl/lvgl.h"
 #include "../../lvgl/demos/lv_demos.h"
+#include "../../gyro/mpu6050.h"
 
 static lv_obj_t *obj_background; 
 static lv_obj_t *obj_instrument_profile;
@@ -13,7 +14,7 @@ static lv_meter_scale_t *scale[2];
 static lv_meter_indicator_t *indic[2];
 static lv_obj_t *obj_label;
 
-int angle = -90;
+int angle = 0;
 int angle_warning[2] = {-45,45};
 uint8_t blink_cnt = 0;
 uint8_t is_blinking = 0;
@@ -149,16 +150,16 @@ static void update_meter_color(void)
     }
 }
 
+#if(0)
 static void angle_add(void)
 {
-
 #if(1)
     angle += 1;
     if(angle > 90)
         angle = -90;
 #endif
 }
-
+#endif
 static void update_meter_string(void)
 {
     char str[11] = "";
@@ -176,8 +177,12 @@ static void update_meter()
     update_meter_color();
     update_meter_angle();
     update_meter_string();
-    
+
+#if(0)
     angle_add();
+#else
+    angle = 0 - (int)pitch;
+#endif
 }
 
 static lv_obj_t *create_meter(lv_obj_t *parent)
