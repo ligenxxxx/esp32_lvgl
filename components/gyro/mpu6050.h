@@ -15,13 +15,13 @@
 
 typedef struct
 {
-    uint16_t gyro_x;
-    uint16_t gyro_y;
-    uint16_t gyro_z;
-    uint16_t acc_x;
-    uint16_t acc_y;
-    uint16_t acc_z;
-    double  temp;
+    int16_t gyro_x;
+    int16_t gyro_y;
+    int16_t gyro_z;
+    int16_t acc_x;
+    int16_t acc_y;
+    int16_t acc_z;
+    int16_t  temp;
 } mpu6050_t;
 
 void mpu6050_task();
