@@ -13,6 +13,10 @@
 #define MPU6050_REG_ACC_OUT             0x3b
 #define MPU6050_REG_TEMP_OUT_H          0x41
 
+#define FIFO1_SIZE 7
+#define FIFO2_SIZE 7
+#define ABS(a) (((a) < 0) ? (0-(a)) : (a)) 
+
 typedef struct
 {
     int16_t gyro_x;

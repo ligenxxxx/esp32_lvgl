@@ -8,6 +8,8 @@ const uint16_t SAMPLE_PERIOD = 20; //ms
 const uint16_t SAMPLE_RATE = 1000/20; //ms
 mpu6050_t mpu6050;
 double pitch = 0;
+static double fifo1[FIFO1_SIZE] = {0};
+static double fifo2[FIFO1_SIZE] = {0};
 
 static esp_err_t mpu6050_init(void)
 {
@@ -41,71 +43,81 @@ static esp_err_t mpu6050_read_data(void)
     mpu6050.gyro_y = (rdata[2] << 8) | rdata[3];
     mpu6050.gyro_z = (rdata[4] << 8) | rdata[5];
 
-#if(0)
-    // deg/gyro_data = 2000/32768
-    // => deg = gyro_data / (32768/2000)
-    // => deg = ro_data / 16.384
-    mpu6050.gyro_x /= 16.384f;
-    mpu6050.gyro_y /= 16.384f;
-    mpu6050.gyro_z /= 16.384f;
-#endif
     wdata = MPU6050_REG_ACC_OUT;
     err |= i2c_master_write_read_device(i2c1_master_port, MPU6050_I2C_ADDR, &wdata, 1, rdata, 6, I2C1_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
     mpu6050.acc_x = (rdata[0] << 8) | rdata[1];
     mpu6050.acc_y = (rdata[2] << 8) | rdata[3];
     mpu6050.acc_z = (rdata[4] << 8) | rdata[5];
-#if(0)
-    // a/acc_data = 2/32768
-    // => a = acc_data / (32768/2)
-    // => a = acc_data / 16384.0
-    mpu6050.acc_x /= 16384.0f;
-    mpu6050.acc_y /= 16384.0f;
-    mpu6050.acc_z /= 16384.0f;
-#endif
-    #if(0)
-    wdata = MPU6050_REG_TEMP_OUT_H;
-    err |= i2c_master_write_read_device(i2c1_master_port, MPU6050_I2C_ADDR, &wdata, 1, rdata, 21, I2C1_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
-    mpu6050.temp = (rdata[0] << 8) | rdata[1];
-    #endif
 
+#if(0)
     printf("\r\n%d %d %d %d %d %d",mpu6050.gyro_x,mpu6050.gyro_y,mpu6050.gyro_z,
                                         mpu6050.acc_x,mpu6050.acc_y,mpu6050.acc_z);
+#endif
     return err;
 }
 
-static void complementary_filter(void)
+static void fifo_write(double *fifo, double angle, int fifo_size)
 {
-    float angle = 0;
-    float e_gyro = 0;
-    const float Ki = 0;
-    static double pitch_r = 0;
-    static float e_gyro_r = 1;
-    #if(1)
-            if((int16_t)mpu6050.acc_x > 0)
-                angle = atan2((double)mpu6050.acc_x, (double)mpu6050.acc_z)*180/3.14f;
+    int i;
+
+    for(i=fifo_size-1; i>=0; i--)
+    {
+        if(i==0)
+            fifo[i] = angle;
+        else
+            fifo[i] = fifo[i-1];
+    }
+}
+
+static double dynamic_filter(void)
+{
+    double avg = 0;
+    double mess = 0;
+    static double angle = 0;
+    int i;
+
+    for(i=0; i<FIFO1_SIZE; i++)
+        avg += fifo1[i];
+    avg /= FIFO1_SIZE;
+
+    for(i=0; i<FIFO1_SIZE; i++)
+        mess += ABS(fifo1[i] - avg);
+    
+    if(mess <= 5)
+    {
+        if(angle - avg > 2)
+        {
+            if((mpu6050.gyro_y / 16.384 / 50) < -0.5)
+                angle = avg;
             else
-                angle = 0 - atan2((double)(0-(int16_t)mpu6050.acc_x), (double)mpu6050.acc_z)*180/3.14f;
-    #else
-        angle = atan2((double)mpu6050.acc_x, (double)mpu6050.acc_z)*180/3.14f;
-    #endif
-    #if(0)
-    if((int16_t)mpu6050.gyro_y > 0)
-        e_gyro = (int16_t)mpu6050.gyro_y * 20 / 1000.f;
+                angle += (mpu6050.gyro_y / 16.384 / 50);
+        }
+        else
+        {
+            angle = avg;
+        }
+    }
     else
-        e_gyro = 0 - (int16_t)mpu6050.gyro_y * 20 / 1000.f;
-    #else
-        e_gyro = (int16_t)mpu6050.gyro_y * 20 / 1000.f;
-    #endif
-    pitch_r = Ki * (e_gyro - e_gyro_r + pitch_r) + (1 - Ki) * angle;
-    printf("\r\nangle%.1f, e_gyro%.1f, pitch_r:%.1f", angle, e_gyro-e_gyro_r, pitch_r);
-    pitch = pitch_r;
-#if(0)
-    if((int16_t)mpu6050.acc_x < 0)
-        pitch = 0 - pitch_r;
-    else
-        pitch = pitch_r;
-#endif
-    e_gyro_r = e_gyro;
+    {
+        angle += (mpu6050.gyro_y / 16.384 / 50);
+    }
+
+    //printf("dynamic_filter:%.2f %.2f %.2f\n", angle, mess, mpu6050.gyro_y / 16.384 / 50);
+    return angle;
+}
+
+static double lp_filter(double *fifo, int fifo_size)
+{
+    double angle = 0;
+    int i;
+
+    for(i=0; i<fifo_size; i++)
+        angle += fifo[i];
+
+    angle /= fifo_size;
+
+    //printf("lp_filter:%.2f\n", angle);
+    return angle;
 }
 
 void mpu6050_task()
@@ -125,6 +137,9 @@ void mpu6050_task()
         if(err == ESP_OK)
         {
             err |= mpu6050_read_data();
+            fifo_write(fifo1, (atan2((double)mpu6050.acc_z, (double)mpu6050.acc_x) * 57.2957795), FIFO1_SIZE);
+            fifo_write(fifo2, dynamic_filter(), FIFO2_SIZE);
+            pitch = lp_filter(fifo2, FIFO2_SIZE);
         }
         vTaskDelay(SAMPLE_PERIOD / portTICK_PERIOD_MS);
     }

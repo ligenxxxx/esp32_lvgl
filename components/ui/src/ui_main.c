@@ -181,7 +181,7 @@ static void update_meter()
 #if(0)
     angle_add();
 #else
-    angle = 0 - (int)pitch;
+    angle = (int)pitch - 90;
 #endif
 }
 
