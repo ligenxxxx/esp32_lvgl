@@ -17,19 +17,38 @@
 #define FIFO2_SIZE 7
 #define ABS(a) (((a) < 0) ? (0-(a)) : (a)) 
 
-typedef struct
-{
-    int16_t gyro_x;
-    int16_t gyro_y;
-    int16_t gyro_z;
-    int16_t acc_x;
-    int16_t acc_y;
-    int16_t acc_z;
-    int16_t  temp;
-} mpu6050_t;
+#define RAD_TO_DEG 57.295779513082320876798154814105
+typedef struct {
+    int16_t Accel_X_RAW;
+    int16_t Accel_Y_RAW;
+    int16_t Accel_Z_RAW;
+    double Ax;
+    double Ay;
+    double Az;
+
+    int16_t Gyro_X_RAW;
+    int16_t Gyro_Y_RAW;
+    int16_t Gyro_Z_RAW;
+    double Gx;
+    double Gy;
+    double Gz;
+
+    float Temperature;
+
+    double KalmanAngleX;
+    double KalmanAngleY;
+} MPU6050_t;
+
+typedef struct {
+    double Q_angle;
+    double Q_bias;
+    double R_measure;
+    double angle;
+    double bias;
+    double P[2][2];
+} Kalman_t;
 
 void mpu6050_task();
 
-
-extern double pitch;
+extern double roll;
 #endif
