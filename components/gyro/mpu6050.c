@@ -215,7 +215,7 @@ void mpu6050_task()
             err |= mpu6050_read_data();
             fifo_write(fifo1, mpu6050.KalmanAngleY, FIFO1_SIZE);
             roll = lp_filter(fifo1, FIFO1_SIZE);
-            printf("roll:%.1f\n", roll);
+            //printf("roll:%.1f\n", roll);
         }
         vTaskDelay(SAMPLE_PERIOD / portTICK_PERIOD_MS);
     }
